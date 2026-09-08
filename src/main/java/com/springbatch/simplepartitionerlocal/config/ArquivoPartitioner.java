@@ -28,7 +28,7 @@ public class ArquivoPartitioner implements Partitioner {
         return map;
     }
 
-    private int calcularPrimeiroItemLeitura(Integer particao){
+    public int calcularPrimeiroItemLeitura(Integer particao){
         Integer indexPrimeiroItem = (particao * (totalRegistros / gridSize));
         //0 * 20000/10
         //1 * 20000/10 = 2000

@@ -2,10 +2,14 @@ package com.springbatch.simplepartitionerlocal.reader;
 
 import java.util.Date;
 
+import com.springbatch.simplepartitionerlocal.config.ArquivoPartitioner;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.batch.item.file.mapping.FieldSetMapper;
 import org.springframework.batch.item.file.transform.FieldSet;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
@@ -15,7 +19,17 @@ import com.springbatch.simplepartitionerlocal.dominio.Pessoa;
 
 @Configuration
 public class ArquivoPessoaReaderConfig {
+    @Autowired
+    private ArquivoPartitioner partitioner;
+
+    @StepScope
 	@Bean
+    public CustomArquivoReader<Pessoa> arquivoPessoaReader(@Value("#{stepExecutionContext['particao']")
+                                                               Integer particao){
+        return new CustomArquivoReader<>(arquivoPessoaReader(partitioner.calcularPrimeiroItemLeitura(particao)),
+                partitioner.getItensLimit());
+    }
+
 	public FlatFileItemReader<Pessoa> arquivoPessoaReader() {
 		return new FlatFileItemReaderBuilder<Pessoa>()
 				.name("arquivoPessoaReader")
