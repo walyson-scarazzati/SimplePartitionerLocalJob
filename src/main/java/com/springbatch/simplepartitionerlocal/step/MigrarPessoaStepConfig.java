@@ -30,7 +30,8 @@ public class MigrarPessoaStepConfig {
     @Value("${migracaoDados.gridSize}")
     public Integer gridSize;
 
-    public Step migrarPessoasManager(
+    @Bean
+    public Step migrarPessoaManager(
             ItemReader<Pessoa> arquivoPessoaReader,
             ItemWriter<Pessoa> pessoaWriter,
             Partitioner partitioner,

@@ -1,6 +1,9 @@
 package com.springbatch.simplepartitionerlocal.reader;
 
 import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 
 import com.springbatch.simplepartitionerlocal.config.ArquivoPartitioner;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -19,24 +22,28 @@ import com.springbatch.simplepartitionerlocal.dominio.Pessoa;
 
 @Configuration
 public class ArquivoPessoaReaderConfig {
+    private static final DateTimeFormatter DATA_NASCIMENTO_FORMATTER =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
     @Autowired
     private ArquivoPartitioner partitioner;
 
     @StepScope
 	@Bean
-    public CustomArquivoReader<Pessoa> arquivoPessoaReader(@Value("#{stepExecutionContext['particao']")
+    public CustomArquivoReader<Pessoa> arquivoPessoaReader(@Value("#{stepExecutionContext['particao']}")
                                                                Integer particao){
-        return new CustomArquivoReader<>(arquivoPessoaReader(partitioner.calcularPrimeiroItemLeitura(particao)),
+        return new CustomArquivoReader<Pessoa>(arquivoPessoaReader(partitioner.calcularPrimeiroItemLeitura(particao)),
                 partitioner.getItensLimit());
     }
 
-	public FlatFileItemReader<Pessoa> arquivoPessoaReader() {
+	public FlatFileItemReader<Pessoa> arquivoPessoaReader(int currentItemCount) {
 		return new FlatFileItemReaderBuilder<Pessoa>()
 				.name("arquivoPessoaReader")
 				.resource(new FileSystemResource("files/pessoas.csv"))
 				.delimited()
 				.names("nome", "email", "dataNascimento", "idade", "id")
 				.addComment("--")
+                .currentItemCount(currentItemCount)
 				.fieldSetMapper(fieldSetMapper())
 				.build();
 	}
@@ -49,7 +56,10 @@ public class ArquivoPessoaReaderConfig {
 				Pessoa pessoa = new Pessoa();
 				pessoa.setNome(fieldSet.readString("nome"));
 				pessoa.setEmail(fieldSet.readString("email"));
-				pessoa.setDataNascimento(new Date(fieldSet.readDate("dataNascimento", "yyyy-MM-dd HH:mm:ss").getTime()));
+				pessoa.setDataNascimento(Date.from(LocalDateTime
+						.parse(fieldSet.readString("dataNascimento"), DATA_NASCIMENTO_FORMATTER)
+						.atOffset(ZoneOffset.UTC)
+						.toInstant()));
 				pessoa.setIdade(fieldSet.readInt("idade"));
 				pessoa.setId(fieldSet.readInt("id"));
 				return pessoa;

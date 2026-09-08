@@ -31,6 +31,7 @@ public class MigrarDadosBancariosStepConfig {
 	@Qualifier("transactionManagerApp")
 	private PlatformTransactionManager transactionManagerApp;
 
+    @Bean
     public Step migrarDadosBancariosManager(
             ItemReader<DadosBancarios> arquivoDadosBancariosReader,
             ItemWriter<DadosBancarios> bancoDadosBancariosWriter,
